@@ -67,6 +67,14 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+CREATE TABLE IF NOT EXISTS gmail_labels (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    messages_total   INTEGER NOT NULL DEFAULT 0,
+    messages_unread  INTEGER NOT NULL DEFAULT 0,
+    synced_at        TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Default settings
 INSERT OR IGNORE INTO settings (key, value) VALUES
     ('poll_interval_minutes', '5'),

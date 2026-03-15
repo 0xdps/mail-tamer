@@ -106,11 +106,16 @@ class GmailClient:
 
     # ------------------------------------------------------------------ apply
 
-    def apply_label(self, message_id: str, label_name: str, archive: bool = False):
+    def apply_label(self, message_id: str, label_name: str, archive: bool = False, mark_read: bool = False):
         label_id = self._ensure_label(label_name)
         body: dict = {"addLabelIds": [label_id]}
+        remove = []
         if archive:
-            body["removeLabelIds"] = ["INBOX"]
+            remove.append("INBOX")
+        if mark_read:
+            remove.append("UNREAD")
+        if remove:
+            body["removeLabelIds"] = remove
         self.service.users().messages().modify(
             userId="me", id=message_id, body=body
         ).execute()
@@ -118,14 +123,12 @@ class GmailClient:
     def trash_message(self, message_id: str):
         self.service.users().messages().trash(userId="me", id=message_id).execute()
 
-    def apply_action(self, message_id: str, label_name: str, action: str):
-        """Dispatch label / archive / trash actions."""
-        if action == "trash":
-            self.trash_message(message_id)
-        elif action == "archive":
-            self.apply_label(message_id, label_name, archive=True)
+    def apply_action(self, message_id: str, label_name: str, action: str, mark_read: bool = False):
+        """Dispatch label / archive actions, with optional mark-as-read."""
+        if action == "archive":
+            self.apply_label(message_id, label_name, archive=True, mark_read=mark_read)
         else:
-            self.apply_label(message_id, label_name)
+            self.apply_label(message_id, label_name, mark_read=mark_read)
 
     # ------------------------------------------------------------------ utils
 

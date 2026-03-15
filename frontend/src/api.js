@@ -63,4 +63,8 @@ export const api = {
     if (pageToken) q.set('page_token', pageToken)
     return req(`/emails?${q}`)
   },
+
+  // dashboard
+  getDashboardStats: () => req('/dashboard/stats'),
+  syncLabels: () => req('/dashboard/sync-labels', { method: 'POST' }),
 }

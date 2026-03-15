@@ -12,9 +12,11 @@ from database import get_db, get_setting
 @dataclass
 class ClassificationResult:
     label: str
-    action: str
+    action: str       # derived: "archive" | "label"
+    archive: bool
+    mark_read: bool
     confidence: float
-    reasoning: str
+    reason: str
     model: str
     conditions: dict  # suggested rule conditions
 
@@ -23,18 +25,85 @@ class ClassificationResult:
 # Prompt builder
 # ---------------------------------------------------------------------------
 
-_SYSTEM_PROMPT = """You are an email classifier. Given email metadata, classify it into a Gmail label.
-Respond ONLY with valid JSON (no markdown fences) with this exact shape:
-{
-  "label": "string (e.g. Newsletters, Receipts, Notifications, Developer, Social, Work, Personal)",
-  "action": "label | archive | trash",
+_SYSTEM_PROMPT_TEMPLATE = """You are an email classification system used to automatically organize a Gmail inbox.
+
+Goal:
+Keep the inbox focused on important human communication. Automated emails such as newsletters, notifications, receipts, and promotions should usually be archived.
+
+Existing labels currently used in the mailbox:
+{existing_labels}
+
+Instructions:
+
+1. Prefer assigning one of the existing labels if it fits well.
+2. Only create a new label if none of the existing labels are appropriate.
+3. Never return generic labels such as:
+   Other, Misc, Uncategorized, General, Unknown, Inbox.
+4. If creating a new label:
+   - Use Title Case
+   - Keep it concise (1-3 words)
+   - Make it specific and meaningful
+5. Avoid creating many similar labels. Reuse existing labels whenever possible.
+
+Inbox rules:
+
+- Human communication -> keep in inbox
+- Newsletters / marketing -> archive
+- Automated notifications -> archive
+- Receipts / invoices -> label appropriately
+- Developer alerts (GitHub, CI, etc.) -> label appropriately
+
+Actions:
+
+- archive: remove from inbox
+- mark_read: mark email as read
+- label: apply the label
+
+Return ONLY valid JSON (no markdown fences) with this exact structure:
+
+{{
+  "label": "string",
+  "archive": true | false,
+  "mark_read": true | false,
   "confidence": 0.0-1.0,
-  "reasoning": "one sentence",
-  "conditions": {
+  "reason": "short explanation",
+  "conditions": {{
     "domain": "optional sender domain if reliable",
     "subject_contains": ["optional", "keywords"]
-  }
-}"""
+  }}
+}}
+
+Conditions are used for learning rules:
+- Provide sender domain if classification is domain-based.
+- Provide subject keywords if they reliably indicate this category.
+- Leave empty if no strong pattern exists."""
+
+
+async def _get_existing_labels() -> str:
+    """Return a comma-separated string of labels from active rules + synced Gmail labels."""
+    try:
+        async with get_db() as db:
+            async with db.execute(
+                "SELECT DISTINCT label FROM rules WHERE status = 'active' ORDER BY label"
+            ) as cursor:
+                rule_rows = await cursor.fetchall()
+            async with db.execute(
+                "SELECT name, messages_total FROM gmail_labels ORDER BY messages_total DESC"
+            ) as cursor:
+                gmail_rows = await cursor.fetchall()
+        rule_labels = {r[0] for r in rule_rows if r[0]}
+        # Build label list: gmail labels first (with counts for context), then any rule labels not already present
+        parts = [f"{r[0]} ({r[1]} emails)" for r in gmail_rows]
+        for lbl in sorted(rule_labels):
+            if lbl not in {r[0] for r in gmail_rows}:
+                parts.append(lbl)
+        return ", ".join(parts) if parts else "none yet"
+    except Exception:
+        return "none yet"
+
+
+def _build_system_prompt(existing_labels: str) -> str:
+    return _SYSTEM_PROMPT_TEMPLATE.format(existing_labels=existing_labels)
 
 def _build_prompt(sender: str, subject: str, snippet: str) -> str:
     return (
@@ -52,9 +121,11 @@ async def _classify_gemini(emails: list[dict], model_name: str) -> list[Classifi
     import google.generativeai as genai
 
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    existing_labels = await _get_existing_labels()
+    system_prompt = _build_system_prompt(existing_labels)
     model = genai.GenerativeModel(
         model_name=model_name,
-        system_instruction=_SYSTEM_PROMPT,
+        system_instruction=system_prompt,
     )
 
     results = []
@@ -63,18 +134,22 @@ async def _classify_gemini(emails: list[dict], model_name: str) -> list[Classifi
         try:
             response = model.generate_content(prompt)
             data = json.loads(response.text.strip())
+            archive = bool(data.get("archive", False))
+            mark_read = bool(data.get("mark_read", False))
             results.append(ClassificationResult(
                 label=data.get("label", "Uncategorised"),
-                action=data.get("action", "label"),
+                action="archive" if archive else "label",
+                archive=archive,
+                mark_read=mark_read,
                 confidence=float(data.get("confidence", 0.5)),
-                reasoning=data.get("reasoning", ""),
+                reason=data.get("reason", ""),
                 model=model_name,
                 conditions=data.get("conditions", {}),
             ))
         except Exception as e:
             results.append(ClassificationResult(
-                label="Uncategorised", action="label", confidence=0.0,
-                reasoning=str(e), model=model_name, conditions={}
+                label="Uncategorised", action="label", archive=False, mark_read=False,
+                confidence=0.0, reason=str(e), model=model_name, conditions={}
             ))
     return results
 
@@ -87,6 +162,8 @@ async def _classify_claude(emails: list[dict], model_name: str) -> list[Classifi
     import anthropic
 
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    existing_labels = await _get_existing_labels()
+    system_prompt = _build_system_prompt(existing_labels)
     results = []
 
     for email in emails:
@@ -95,22 +172,26 @@ async def _classify_claude(emails: list[dict], model_name: str) -> list[Classifi
             message = client.messages.create(
                 model=model_name,
                 max_tokens=256,
-                system=_SYSTEM_PROMPT,
+                system=system_prompt,
                 messages=[{"role": "user", "content": prompt}],
             )
             data = json.loads(message.content[0].text.strip())
+            archive = bool(data.get("archive", False))
+            mark_read = bool(data.get("mark_read", False))
             results.append(ClassificationResult(
                 label=data.get("label", "Uncategorised"),
-                action=data.get("action", "label"),
+                action="archive" if archive else "label",
+                archive=archive,
+                mark_read=mark_read,
                 confidence=float(data.get("confidence", 0.5)),
-                reasoning=data.get("reasoning", ""),
+                reason=data.get("reason", ""),
                 model=model_name,
                 conditions=data.get("conditions", {}),
             ))
         except Exception as e:
             results.append(ClassificationResult(
-                label="Uncategorised", action="label", confidence=0.0,
-                reasoning=str(e), model=model_name, conditions={}
+                label="Uncategorised", action="label", archive=False, mark_read=False,
+                confidence=0.0, reason=str(e), model=model_name, conditions={}
             ))
     return results
 
@@ -143,7 +224,7 @@ async def maybe_promote_to_rule(result: ClassificationResult, email: dict):
                VALUES (?, ?, ?, ?, 'ai', 'pending', ?, ?)""",
             (
                 name[:100],
-                result.reasoning,
+                result.reason,
                 result.label,
                 result.action,
                 json.dumps(result.conditions),

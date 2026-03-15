@@ -1,8 +1,9 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, Inbox, History, Settings, LogOut, MailOpen } from 'lucide-react'
+import { LayoutDashboard, BookOpen, Inbox, History, Settings, LogOut, MailOpen } from 'lucide-react'
 import { api } from './api'
 
 const navItems = [
+  { to: '/',         label: 'Dashboard',   icon: LayoutDashboard, end: true },
   { to: '/rules',    label: 'Rules',       icon: BookOpen  },
   { to: '/decisions',label: 'Decisions',   icon: Inbox     },
   { to: '/runs',     label: 'Run History', icon: History   },
@@ -26,10 +27,11 @@ export default function Layout() {
           Mail Tamer
         </div>
 
-        {navItems.map(({ to, label, icon: Icon }) => (
+        {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
             to={to}
+            end={end}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
           >
             <Icon size={16} />

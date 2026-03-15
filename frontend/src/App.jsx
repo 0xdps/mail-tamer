@@ -1,6 +1,7 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Layout from './Layout'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
 import Rules from './pages/Rules'
 import Decisions from './pages/Decisions'
 import RunHistory from './pages/RunHistory'
@@ -14,7 +15,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/rules" replace />} />
+          <Route index element={<Dashboard />} />
           <Route path="rules" element={<Rules />} />
           <Route path="decisions" element={<Decisions />} />
           <Route path="runs" element={<RunHistory />} />

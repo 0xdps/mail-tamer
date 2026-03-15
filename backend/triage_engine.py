@@ -77,6 +77,7 @@ async def run_triage(
                 if not dry_run:
                     client.apply_action(msg_id, match.label, match.action)
                     stats["labels_applied"] += 1
+                    await _increment_label_usage(match.label)
             else:
                 unmatched_emails.append(detail)
 
@@ -100,8 +101,9 @@ async def run_triage(
                     dry_run=dry_run,
                 )
                 if not dry_run:
-                    client.apply_action(email["id"], result.label, result.action)
+                    client.apply_action(email["id"], result.label, result.action, result.mark_read)
                     stats["labels_applied"] += 1
+                    await _increment_label_usage(result.label)
 
                 # Promote high-confidence to pending rule
                 await maybe_promote_to_rule(result, email)
@@ -164,5 +166,15 @@ async def _fail_run(run_id: int, error: str):
         await db.execute(
             "UPDATE runs SET status = 'failed', error = ?, finished_at = datetime('now') WHERE id = ?",
             (error[:500], run_id)
+        )
+        await db.commit()
+
+
+async def _increment_label_usage(label_name: str):
+    """Increment messages_total for a label in gmail_labels (no-op if label not yet synced)."""
+    async with get_db() as db:
+        await db.execute(
+            "UPDATE gmail_labels SET messages_total = messages_total + 1 WHERE name = ?",
+            (label_name,)
         )
         await db.commit()

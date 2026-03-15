@@ -1,4 +1,6 @@
 import os
+os.environ.setdefault("GRPC_VERBOSITY", "ERROR")
+os.environ.setdefault("GRPC_TRACE", "")
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -12,6 +14,7 @@ from scheduler import start_scheduler
 from routers import auth, rules, decisions, runs, scheduler as scheduler_router
 from routers import health as health_router
 from routers import emails as emails_router
+from routers import dashboard as dashboard_router
 
 
 @asynccontextmanager
@@ -30,6 +33,7 @@ app.include_router(runs.router)
 app.include_router(scheduler_router.router)
 app.include_router(health_router.router)
 app.include_router(emails_router.router)
+app.include_router(dashboard_router.router)
 
 # Serve React SPA (built to frontend/dist)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")
