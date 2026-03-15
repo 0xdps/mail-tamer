@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  mail-tamer:
+    build: .
+    container_name: mail-tamer
+    ports:
+      - "8000:8000"
+    volumes:
+      - data_volume:/app/data
+    env_file:
+      - .env
+    environment:
+      - DB_PATH=/app/data/triage.db
+      - COOKIE_SECURE=false
+
+volumes:
+  data_volume:
