@@ -10,6 +10,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
     "https://www.googleapis.com/auth/gmail.labels",
     "https://www.googleapis.com/auth/gmail.modify",
+    # gmail.settings.basic needed when filter create/delete is implemented
 ]
 
 def _build_credentials() -> Credentials:
@@ -139,6 +140,98 @@ class GmailClient:
             self.apply_label(message_id, label_name, archive=True, mark_read=mark_read)
         else:
             self.apply_label(message_id, label_name, mark_read=mark_read)
+
+    # ------------------------------------------------------------------ gmail filters
+
+    def fetch_gmail_filters(self) -> list[dict]:
+        """Fetch all Gmail filters and translate to our rule format."""
+        SYSTEM_IDS = {"INBOX", "UNREAD", "SPAM", "TRASH", "SENT", "DRAFT", "IMPORTANT", "STARRED"}
+
+        labels_resp = self.service.users().labels().list(userId="me").execute()
+        label_map = {lbl["id"]: lbl["name"] for lbl in labels_resp.get("labels", [])}
+
+        filters_resp = self.service.users().settings().filters().list(userId="me").execute()
+        results = []
+        for f in filters_resp.get("filter", []):
+            criteria = f.get("criteria", {})
+            action = f.get("action", {})
+
+            # Resolve first user-owned label
+            user_label = None
+            for lid in action.get("addLabelIds", []):
+                if lid not in SYSTEM_IDS and not lid.startswith("CATEGORY_"):
+                    user_label = label_map.get(lid)
+                    break
+            if not user_label:
+                continue  # no user label → skip
+
+            # Build conditions JSON
+            conditions: dict = {}
+            from_val = (criteria.get("from") or "").strip()
+            if from_val:
+                if " OR " in from_val:
+                    conditions["from_raw"] = from_val
+                elif "@" in from_val:
+                    conditions["domain"] = from_val.split("@")[-1].strip("> ")
+                else:
+                    conditions["domain"] = from_val  # domain-only e.g. "barraiser.com"
+            if criteria.get("subject"):
+                conditions["subject_contains"] = criteria["subject"]
+            if criteria.get("query"):
+                conditions["gmail_query"] = criteria["query"]
+            if criteria.get("negatedQuery"):
+                conditions["negated_query"] = criteria["negatedQuery"]
+
+            remove_ids = set(action.get("removeLabelIds", []))
+            rule_action = "archive" if "INBOX" in remove_ids else "label"
+            mark_read = 1 if "UNREAD" in remove_ids else 0
+
+            # Human-readable name
+            if from_val and " OR " not in from_val:
+                name = f"Gmail: {from_val[:60]}"
+            elif conditions.get("domain"):
+                name = f"Gmail: @{conditions['domain']}"
+            elif criteria.get("subject"):
+                name = f"Gmail: subject:{criteria['subject'][:50]}"
+            elif criteria.get("query"):
+                name = f"Gmail: {criteria['query'][:50]}"
+            else:
+                name = f"Gmail filter {f['id'][:12]}"
+
+            results.append({
+                "gmail_filter_id": f["id"],
+                "name": name,
+                "label": user_label,
+                "action": rule_action,
+                "mark_read": mark_read,
+                "conditions": conditions,
+            })
+
+        return results
+
+    # ------------------------------------------------------------------ bulk ops
+
+    def mark_all_read(self) -> int:
+        """Mark all UNREAD messages as read. Returns count of messages processed."""
+        total = 0
+        page_token = None
+        while True:
+            kwargs: dict = {"userId": "me", "labelIds": ["UNREAD"], "maxResults": 500}
+            if page_token:
+                kwargs["pageToken"] = page_token
+            resp = self.service.users().messages().list(**kwargs).execute()
+            ids = [m["id"] for m in resp.get("messages", [])]
+            if ids:
+                for i in range(0, len(ids), 1000):
+                    self.service.users().messages().batchModify(
+                        userId="me",
+                        body={"removeLabelIds": ["UNREAD"], "ids": ids[i:i + 1000]},
+                    ).execute()
+                total += len(ids)
+            page_token = resp.get("nextPageToken")
+            if not page_token:
+                break
+        return total
 
     # ------------------------------------------------------------------ utils
 

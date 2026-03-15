@@ -1,8 +1,9 @@
 import asyncio
+import json
 from fastapi import APIRouter, Depends
 
 from auth import require_auth
-from database import get_db
+from database import get_db, set_setting, get_setting
 
 router = APIRouter(
     prefix="/api/dashboard",
@@ -16,6 +17,14 @@ def _fetch_gmail_labels_sync() -> list[dict]:
 
     service = get_gmail_service()
     result = service.users().labels().list(userId="me").execute()
+
+    # Fetch INBOX system label for total/unread counts
+    inbox_detail = service.users().labels().get(userId="me", id="INBOX").execute()
+    inbox_meta = {
+        "total": inbox_detail.get("messagesTotal", 0),
+        "unread": inbox_detail.get("messagesUnread", 0),
+    }
+
     labels = []
     for lbl in result.get("labels", []):
         if lbl.get("type") == "user":
@@ -28,13 +37,13 @@ def _fetch_gmail_labels_sync() -> list[dict]:
                     "messages_unread": detail.get("messagesUnread", 0),
                 }
             )
-    return labels
+    return labels, inbox_meta
 
 
 @router.post("/sync-labels")
 async def sync_labels():
     loop = asyncio.get_running_loop()
-    labels = await loop.run_in_executor(None, _fetch_gmail_labels_sync)
+    labels, inbox_meta = await loop.run_in_executor(None, _fetch_gmail_labels_sync)
 
     async with get_db() as db:
         for lbl in labels:
@@ -50,7 +59,13 @@ async def sync_labels():
             )
         await db.commit()
 
-    return {"synced": len(labels), "labels": labels}
+    # Persist inbox meta to settings so stats can read without extra API call
+    await set_setting("inbox_total",  str(inbox_meta["total"]))
+    await set_setting("inbox_unread", str(inbox_meta["unread"]))
+    from datetime import datetime, timezone
+    await set_setting("inbox_synced_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+    return {"synced": len(labels), "labels": labels, "inbox": inbox_meta}
 
 
 @router.get("/stats")
@@ -107,8 +122,31 @@ async def get_stats():
         ) as cur:
             total_runs = (await cur.fetchone())[0]
 
+    # Inbox meta — prefer the richer mailbox_stats_json cache (populated on first modal open),
+    # fall back to the sync-labels settings for backwards compatibility.
+    mailbox_json_str = await get_setting("mailbox_stats_json", "")
+    if mailbox_json_str:
+        try:
+            mdata = json.loads(mailbox_json_str)
+            inbox_total  = mdata.get("inbox", {}).get("total",  0)
+            inbox_unread = mdata.get("inbox", {}).get("unread", 0)
+            inbox_synced = await get_setting("mailbox_stats_fetched_at", "")
+        except Exception:
+            inbox_total  = int(await get_setting("inbox_total",  "0"))
+            inbox_unread = int(await get_setting("inbox_unread", "0"))
+            inbox_synced = await get_setting("inbox_synced_at", "")
+    else:
+        inbox_total  = int(await get_setting("inbox_total",  "0"))
+        inbox_unread = int(await get_setting("inbox_unread", "0"))
+        inbox_synced = await get_setting("inbox_synced_at", "")
+
     return {
         "gmail_labels": gmail_labels,
+        "inbox": {
+            "total":     inbox_total,
+            "unread":    inbox_unread,
+            "synced_at": inbox_synced,
+        },
         "decisions": {
             "total": dec_row["total"] or 0,
             "applied": dec_row["applied"] or 0,

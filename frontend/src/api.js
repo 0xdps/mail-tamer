@@ -33,6 +33,7 @@ export const api = {
   updateRule: (id, data) => req(`/rules/${id}`, { method: 'PATCH', body: data }),
   approveRule: (id) => req(`/rules/${id}/approve`, { method: 'POST' }),
   deleteRule: (id) => req(`/rules/${id}`, { method: 'DELETE' }),
+  syncGmailFilters: () => req('/rules/sync-gmail', { method: 'POST' }),
 
   // decisions
   getDecisions: (params = {}) => {
@@ -63,6 +64,10 @@ export const api = {
     if (pageToken) q.set('page_token', pageToken)
     return req(`/emails?${q}`)
   },
+  getInboxMeta: () => req('/emails/inbox-meta'),
+  resetMarkReadStatus: () => req('/emails/reset-mark-read-status', { method: 'POST' }),
+  getMailboxStats: (force = false) => req(`/emails/mailbox-stats${force ? '?force=true' : ''}`),
+  markAllRead: () => req('/emails/mark-all-read', { method: 'POST' }),
 
   // dashboard
   getDashboardStats: () => req('/dashboard/stats'),

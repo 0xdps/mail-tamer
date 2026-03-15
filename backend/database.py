@@ -8,18 +8,20 @@ SCHEMA = """
 PRAGMA journal_mode=WAL;
 
 CREATE TABLE IF NOT EXISTS rules (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    name        TEXT NOT NULL,
-    description TEXT,
-    label       TEXT NOT NULL,
-    action      TEXT NOT NULL DEFAULT 'label',   -- label | archive | trash
-    source      TEXT NOT NULL DEFAULT 'manual',  -- manual | ai
-    status      TEXT NOT NULL DEFAULT 'active',  -- active | pending | disabled
-    conditions  TEXT NOT NULL DEFAULT '{}',      -- JSON: {domain, subject_contains, headers}
-    match_count INTEGER NOT NULL DEFAULT 0,
-    confidence  REAL,
-    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    name            TEXT NOT NULL,
+    description     TEXT,
+    label           TEXT NOT NULL,
+    action          TEXT NOT NULL DEFAULT 'label',   -- label | archive | trash
+    source          TEXT NOT NULL DEFAULT 'manual',  -- manual | ai | gmail
+    status          TEXT NOT NULL DEFAULT 'active',  -- active | pending | disabled
+    conditions      TEXT NOT NULL DEFAULT '{}',      -- JSON: {domain, from_raw, subject_contains, gmail_query, negated_query}
+    match_count     INTEGER NOT NULL DEFAULT 0,
+    confidence      REAL,
+    gmail_filter_id TEXT,                            -- linked Gmail filter id (source='gmail')
+    mark_read       INTEGER NOT NULL DEFAULT 0,      -- 1 = mark as read when matched
+    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS domain_mappings (
@@ -75,15 +77,7 @@ CREATE TABLE IF NOT EXISTS gmail_labels (
     synced_at        TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Default settings
-INSERT OR IGNORE INTO settings (key, value) VALUES
-    ('poll_interval_minutes', '5'),
-    ('ai_model', 'gemini-2.0-flash'),
-    ('confidence_threshold', '0.85'),
-    ('dry_run', 'false'),
-    ('batch_size', '50'),
-    ('scheduler_enabled', 'true');
-"""
+"""  # default settings inserted in init_db from env
 
 @asynccontextmanager
 async def get_db():
@@ -92,10 +86,39 @@ async def get_db():
         await db.execute("PRAGMA foreign_keys = ON")
         yield db
 
+_SETTING_DEFAULTS = {
+    "poll_interval_minutes": ("POLL_INTERVAL_MINUTES", "5"),
+    "ai_model":              ("AI_MODEL",              "gemini-2.0-flash"),
+    "confidence_threshold":  ("CONFIDENCE_THRESHOLD",  "0.85"),
+    "dry_run":               ("DRY_RUN",               "false"),
+    "batch_size":            ("BATCH_SIZE",            "50"),
+    "scheduler_enabled":     ("SCHEDULER_ENABLED",     "false"),
+}
+
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
         await db.executescript(SCHEMA)
         await db.commit()
+        # Seed defaults from env (INSERT OR IGNORE — never overwrites user changes)
+        for key, (env_var, fallback) in _SETTING_DEFAULTS.items():
+            value = os.getenv(env_var, fallback)
+            await db.execute(
+                "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+                (key, value),
+            )
+        await db.commit()
+        # Migrations for existing databases — safe to re-run
+        for sql in [
+            "ALTER TABLE rules ADD COLUMN gmail_filter_id TEXT",
+            "ALTER TABLE rules ADD COLUMN mark_read INTEGER NOT NULL DEFAULT 0",
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_rules_gmail_filter_id "
+            "ON rules(gmail_filter_id) WHERE gmail_filter_id IS NOT NULL",
+        ]:
+            try:
+                await db.execute(sql)
+                await db.commit()
+            except Exception:
+                pass  # column/index already exists
 
 async def get_setting(key: str, default: str = "") -> str:
     async with get_db() as db:

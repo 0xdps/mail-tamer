@@ -158,7 +158,7 @@ tbody tr:hover td { background: rgba(255,255,255,0.018); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:not(:disabled):hover { background: #5254cc; box-shadow: 0 0 0 3px var(--accent-glow); }
-.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); }
+.btn-ghost { background: transparent; color: var(--text-2); }
 .btn-ghost:not(:disabled):hover { background: var(--surface-2); color: var(--text); border-color: rgba(255,255,255,0.18); }
 .btn-danger { background: rgba(239,68,68,0.08); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
 .btn-danger:not(:disabled):hover { background: rgba(239,68,68,0.18); }
@@ -495,7 +495,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: #5254cc; box-shadow: 0 0 0 3px var(--accent-glow); }
-.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid var(--border-2); }
+.btn-ghost { background: transparent; color: var(--text-2); }
 .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
 .btn-danger { background: rgba(239,68,68,0.1); color: var(--red); border: 1px solid rgba(239,68,68,0.2); }
 .btn-danger:hover { background: rgba(239,68,68,0.2); }

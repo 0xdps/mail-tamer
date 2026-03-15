@@ -28,10 +28,10 @@ async def match_email(sender: str, subject: str, domain: str) -> Optional[RuleMa
             if row:
                 return RuleMatch(rule_id=0, label=row["label"], action=row["action"], source="domain")
 
-        # 2. Active rules — manual first, then AI-promoted, highest match_count within each tier
+        # 2. Active rules — skip gmail-native rules (handled by Gmail), manual first
         async with db.execute(
             "SELECT id, label, action, conditions, source FROM rules "
-            "WHERE status = 'active' "
+            "WHERE status = 'active' AND source != 'gmail' "
             "ORDER BY CASE WHEN source = 'manual' THEN 0 ELSE 1 END, match_count DESC"
         ) as cur:
             rules = await cur.fetchall()

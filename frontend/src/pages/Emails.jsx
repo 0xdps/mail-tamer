@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react'
-import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
+import { RefreshCw, ChevronLeft, ChevronRight, MailOpen } from 'lucide-react'
 import { api } from '../api'
 
 export default function Emails() {
   const [emails, setEmails] = useState([])
   const [loading, setLoading] = useState(true)
-  const [pageStack, setPageStack] = useState([null]) // stack of page tokens; index 0 = first page
+  const [pageStack, setPageStack] = useState([null])
   const [currentPage, setCurrentPage] = useState(0)
   const [nextToken, setNextToken] = useState(null)
+  const [marking, setMarking] = useState(false)
+  const [markMsg, setMarkMsg] = useState('')
 
   const load = async (pageToken = null) => {
     setLoading(true)
@@ -46,6 +48,21 @@ export default function Emails() {
     load(token)
   }
 
+  const handleMarkAllRead = async () => {
+    if (!confirm('Mark all ~10k unread messages as read? This may take a minute.')) return
+    setMarking(true)
+    setMarkMsg('')
+    try {
+      const res = await api.markAllRead()
+      setMarkMsg(`Marked ${res.marked_read.toLocaleString()} messages as read`)
+      load(null) // reload first page to reflect changes
+    } catch (e) {
+      setMarkMsg(e.message)
+    }
+    setMarking(false)
+    setTimeout(() => setMarkMsg(''), 6000)
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -54,10 +71,17 @@ export default function Emails() {
             <h1 className="page-title">Inbox</h1>
             <p className="page-subtitle">Your Gmail inbox — read-only view</p>
           </div>
-          <button className="btn btn-ghost" onClick={refresh} disabled={loading}>
-            <RefreshCw size={13} className={loading ? 'spin' : ''} />
-            Refresh
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {markMsg && <span style={{ fontSize: 13, color: 'var(--text-2)' }}>{markMsg}</span>}
+            <button className="btn btn-ghost" onClick={handleMarkAllRead} disabled={marking || loading}>
+              <MailOpen size={13} className={marking ? 'spin' : ''} />
+              {marking ? 'Marking…' : 'Mark All Read'}
+            </button>
+            <button className="btn btn-ghost" onClick={refresh} disabled={loading}>
+              <RefreshCw size={13} className={loading ? 'spin' : ''} />
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
