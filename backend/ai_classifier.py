@@ -41,8 +41,10 @@ Instructions:
    Other, Misc, Uncategorized, General, Unknown, Inbox.
 4. If creating a new label:
    - Use Title Case
-   - Keep it concise (1-3 words)
+   - Keep it concise (1–3 words per segment)
    - Make it specific and meaningful
+   - Use nested labels with "/" for sub-categories (e.g. "Work/Projects", "Finance/Receipts", "Developer/GitHub")
+   - Only add nesting when it genuinely groups related labels; do not nest arbitrarily
 5. Avoid creating many similar labels. Reuse existing labels whenever possible.
 
 Inbox rules:

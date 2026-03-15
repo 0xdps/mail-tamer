@@ -126,27 +126,35 @@ export default function Dashboard() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 320, overflowY: 'auto' }}>
-              {labels.map(lbl => (
-                <div key={lbl.id} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  padding: '7px 10px', background: 'var(--bg)', borderRadius: 6,
-                }}>
-                  <span style={{ fontSize: 13, color: 'var(--text-1)', fontWeight: 500 }}>{lbl.name}</span>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    {lbl.messages_unread > 0 && (
-                      <span className="badge badge-yellow" style={{ fontSize: 11 }}>{lbl.messages_unread} unread</span>
-                    )}
-                    <span style={{ fontSize: 12, color: 'var(--text-2)', minWidth: 28, textAlign: 'right' }}>
-                      {lbl.messages_total.toLocaleString()}
+              {labels.map(lbl => {
+                const parts = lbl.name.split('/')
+                const depth = parts.length - 1
+                const displayName = parts[parts.length - 1]
+                return (
+                  <div key={lbl.id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '7px 10px', background: 'var(--bg)', borderRadius: 6,
+                    paddingLeft: depth > 0 ? `${10 + depth * 16}px` : 10,
+                    opacity: depth > 0 ? 0.9 : 1,
+                  }}>
+                    <span style={{ fontSize: 13, color: 'var(--text-1)', fontWeight: depth === 0 ? 500 : 400 }}>
+                      {depth > 0 && <span style={{ color: 'var(--text-2)', marginRight: 4, fontSize: 11 }}>{'└'}</span>}
+                      {displayName}
                     </span>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {lbl.messages_unread > 0 && (
+                        <span className="badge badge-yellow" style={{ fontSize: 11 }}>{lbl.messages_unread} unread</span>
+                      )}
+                      <span style={{ fontSize: 12, color: 'var(--text-2)', minWidth: 28, textAlign: 'right' }}>
+                        {lbl.messages_total.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
-
-        {/* Top classified labels */}
         <div className="card">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <h2 style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-1)', margin: 0 }}>Top Applied Labels</h2>

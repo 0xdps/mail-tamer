@@ -8,13 +8,15 @@ const STATUS_BADGE = {
   pending:  'badge-yellow',
   disabled: 'badge-gray',
 }
-const SOURCE_BADGE = { manual: 'badge-blue', ai: 'badge-blue' }
+const SOURCE_BADGE   = { manual: 'badge-green', ai: 'badge-blue' }
+const SOURCE_LABEL   = { manual: 'Custom', ai: 'AI promoted' }
 
 function RuleModal({ rule, onClose, onSave }) {
   const initial = rule || { name: '', description: '', label: '', action: 'label', conditions: {} }
   const [form, setForm] = useState({
     ...initial,
-    conditions_domain: initial.conditions?.domain || '',
+    conditions_domain:  initial.conditions?.domain || '',
+    conditions_sender:  initial.conditions?.sender_contains || '',
     conditions_subject: Array.isArray(initial.conditions?.subject_contains)
       ? initial.conditions.subject_contains.join(', ')
       : initial.conditions?.subject_contains || '',
@@ -26,7 +28,8 @@ function RuleModal({ rule, onClose, onSave }) {
   const handleSave = async () => {
     setSaving(true)
     const conditions = {}
-    if (form.conditions_domain) conditions.domain = form.conditions_domain.trim()
+    if (form.conditions_domain)  conditions.domain          = form.conditions_domain.trim()
+    if (form.conditions_sender)  conditions.sender_contains = form.conditions_sender.trim()
     if (form.conditions_subject) conditions.subject_contains = form.conditions_subject.split(',').map(s => s.trim()).filter(Boolean)
 
     const payload = { name: form.name, description: form.description, label: form.label, action: form.action, conditions }
@@ -51,7 +54,8 @@ function RuleModal({ rule, onClose, onSave }) {
         <div className="form-row">
           <div className="form-group">
             <label className="form-label">Label</label>
-            <input className="input" value={form.label} onChange={set('label')} placeholder="e.g. Developer" />
+            <input className="input" value={form.label} onChange={set('label')} placeholder="e.g. Developer or Work/Projects" />
+            <div style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 4 }}>Use <code style={{ background: 'var(--bg)', padding: '1px 4px', borderRadius: 3 }}>/</code> for nested labels, e.g. <em>Finance/Receipts</em></div>
           </div>
           <div className="form-group">
             <label className="form-label">Action</label>
@@ -67,8 +71,12 @@ function RuleModal({ rule, onClose, onSave }) {
           </div>
         </div>
         <div className="form-group" style={{ marginBottom: 12 }}>
-          <label className="form-label">Condition: Domain</label>
+          <label className="form-label">Condition: Sender domain</label>
           <input className="input" value={form.conditions_domain} onChange={set('conditions_domain')} placeholder="e.g. github.com" />
+        </div>
+        <div className="form-group" style={{ marginBottom: 12 }}>
+          <label className="form-label">Condition: Sender contains</label>
+          <input className="input" value={form.conditions_sender} onChange={set('conditions_sender')} placeholder="e.g. noreply@" />
         </div>
         <div className="form-group" style={{ marginBottom: 12 }}>
           <label className="form-label">Condition: Subject contains (comma-separated)</label>
@@ -133,7 +141,9 @@ export default function Rules() {
     <div>
       <div className="page-header">
         <h1 className="page-title">Rules</h1>
-        <p className="page-subtitle">Deterministic classification rules — checked before AI</p>
+        <p className="page-subtitle">
+          Processing order: <strong style={{ color: 'var(--text-1)' }}>1. Custom rules</strong> → <strong style={{ color: 'var(--text-1)' }}>2. AI-promoted rules</strong> → <strong style={{ color: 'var(--text-1)' }}>3. Live AI</strong>
+        </p>
       </div>
 
       {pending.length > 0 && (
@@ -220,7 +230,7 @@ export default function Rules() {
                     </td>
                     <td><span className="badge badge-blue">{r.label}</span></td>
                     <td><span style={{ color: 'var(--text-2)', textTransform: 'capitalize' }}>{r.action}</span></td>
-                    <td><span className={`badge ${SOURCE_BADGE[r.source] || 'badge-gray'}`}>{r.source}</span></td>
+                    <td><span className={`badge ${SOURCE_BADGE[r.source] || 'badge-gray'}`}>{SOURCE_LABEL[r.source] || r.source}</span></td>
                     <td>
                       <label className="toggle">
                         <input type="checkbox" checked={r.status === 'active'} onChange={() => handleToggle(r)} />

@@ -12,11 +12,11 @@ class RuleMatch:
     label: str
     action: str
     confidence: float = 1.0
-    source: str = "rule"   # "rule" | "domain"
+    source: str = "rule"   # "manual" | "ai" | "domain"
 
 
 async def match_email(sender: str, subject: str, domain: str) -> Optional[RuleMatch]:
-    """Try domain_mappings first (fastest), then full rule scan."""
+    """Check domain_mappings → manual rules → AI-promoted rules, in that order."""
 
     async with get_db() as db:
         # 1. Domain mapping (exact, fastest)
@@ -28,19 +28,24 @@ async def match_email(sender: str, subject: str, domain: str) -> Optional[RuleMa
             if row:
                 return RuleMatch(rule_id=0, label=row["label"], action=row["action"], source="domain")
 
-        # 2. Active rules (ordered by match_count desc — most-used first)
+        # 2. Active rules — manual first, then AI-promoted, highest match_count within each tier
         async with db.execute(
-            "SELECT id, label, action, conditions FROM rules "
-            "WHERE status = 'active' ORDER BY match_count DESC"
+            "SELECT id, label, action, conditions, source FROM rules "
+            "WHERE status = 'active' "
+            "ORDER BY CASE WHEN source = 'manual' THEN 0 ELSE 1 END, match_count DESC"
         ) as cur:
             rules = await cur.fetchall()
 
     for rule in rules:
         conditions: dict = json.loads(rule["conditions"] or "{}")
         if _rule_matches(conditions, sender, subject, domain):
-            # Increment match counter (fire-and-forget)
             await _increment_match_count(rule["id"])
-            return RuleMatch(rule_id=rule["id"], label=rule["label"], action=rule["action"])
+            return RuleMatch(
+                rule_id=rule["id"],
+                label=rule["label"],
+                action=rule["action"],
+                source=rule["source"],  # preserve 'manual' vs 'ai'
+            )
 
     return None
 

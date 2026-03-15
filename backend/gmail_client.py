@@ -36,19 +36,29 @@ class GmailClient:
     # ------------------------------------------------------------------ labels
 
     def _ensure_label(self, label_name: str) -> str:
-        """Return label id, creating it if it doesn't exist."""
+        """Return label id for label_name, creating it (and any missing parents) if needed.
+        
+        Nested labels use '/' as separator: e.g. 'Work/Projects/Client A'.
+        Parent labels are created first so Gmail doesn't reject orphaned children.
+        """
         if label_name in self._label_cache:
             return self._label_cache[label_name]
 
+        # Refresh cache from Gmail
         labels = self.service.users().labels().list(userId="me").execute()
         for lbl in labels.get("labels", []):
             self._label_cache[lbl["name"]] = lbl["id"]
 
         if label_name not in self._label_cache:
-            new_label = self.service.users().labels().create(
-                userId="me", body={"name": label_name}
-            ).execute()
-            self._label_cache[label_name] = new_label["id"]
+            # Ensure all ancestor labels exist first
+            parts = label_name.split("/")
+            for depth in range(1, len(parts) + 1):
+                ancestor = "/".join(parts[:depth])
+                if ancestor not in self._label_cache:
+                    created = self.service.users().labels().create(
+                        userId="me", body={"name": ancestor}
+                    ).execute()
+                    self._label_cache[ancestor] = created["id"]
 
         return self._label_cache[label_name]
 

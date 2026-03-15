@@ -81,13 +81,9 @@ export default function ControlPanel() {
         <p className="page-subtitle">Manage the scheduler, settings, and manual operations</p>
       </div>
 
-      {msg && (
-        <div className="card mb-5 text-[var(--accent)] font-medium" style={{ borderColor: 'rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.08)' }}>
-          {msg}
-        </div>
-      )}
 
       <div className="control-grid">
+
 
         {/* Connection Status */}
         <div className="card col-span-full">
@@ -172,6 +168,11 @@ export default function ControlPanel() {
           )}
         </div>
 
+      {msg && (
+        <div className="card col-span-full mb-5 text-[var(--accent)] font-medium" style={{ borderColor: 'rgba(99,102,241,0.3)', background: 'rgba(99,102,241,0.08)' }}>
+          {msg}
+        </div>
+      )}
         {/* Scheduler */}
         <div className="card">
           <div className="card-title">Scheduler</div>
