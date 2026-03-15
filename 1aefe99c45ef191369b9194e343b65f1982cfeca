@@ -1,0 +1,62 @@
+backend/routers/emails.py
+  e83ccfaa848f3143 1-46
+backend/routers/__init__.py
+  38e4076d5efeb542 3-4
+frontend/src/api.js
+  38e4076d5efeb542 56-65
+frontend/src/Layout.jsx
+  38e4076d5efeb542 2,9
+backend/scheduler.py
+  38e4076d5efeb542 32-33,59
+backend/database.py
+  38e4076d5efeb542 3,80,82,85,93,99
+backend/main.py
+  38e4076d5efeb542 13-14,31-32
+frontend/src/index.css
+  38e4076d5efeb542 292
+frontend/src/pages/ControlPanel.jsx
+  38e4076d5efeb542 2,12-13,24-35,47,49-54,72-74,94-155
+scripts/setup.sh
+  38e4076d5efeb542 6-14,20
+frontend/src/pages/Emails.jsx
+  e83ccfaa848f3143 1-25,27-151
+  38e4076d5efeb542 26
+frontend/src/App.jsx
+  38e4076d5efeb542 8,21
+backend/routers/health.py
+  e83ccfaa848f3143 1-15,69,89,91-93,108-146
+  38e4076d5efeb542 16-68,70-88,90,94-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "1aefe99c45ef191369b9194e343b65f1982cfeca",
+  "prompts": {
+    "38e4076d5efeb542": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "3b770abc-03d5-4df4-af5e-4f620bb00a15",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 328,
+      "total_deletions": 135,
+      "accepted_lines": 215,
+      "overriden_lines": 0
+    },
+    "e83ccfaa848f3143": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "23e5c47d-fa41-4795-a572-9639eb653df8",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 265,
+      "total_deletions": 0,
+      "accepted_lines": 255,
+      "overriden_lines": 0
+    }
+  }
+}
