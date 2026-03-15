@@ -1,0 +1,29 @@
+frontend/src/api.js
+  ee5e230205d99ae1 68
+backend/routers/emails.py
+  ee5e230205d99ae1 151-157
+backend/routers/dashboard.py
+  ee5e230205d99ae1 2,6,20-27,40,46,62-66,68,125-142,145-149
+frontend/src/pages/Dashboard.jsx
+  ee5e230205d99ae1 1-2,19,21,32-81,87-91,102-172,229-234,259,263-264,266-269,278,359-484
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "6dcb71eaf19efdb8880d96652a6943bb282e17f5",
+  "prompts": {
+    "ee5e230205d99ae1": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "be06fc69-b0cd-4918-b8de-dafc0b6cf682",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 34,
+      "total_deletions": 7,
+      "accepted_lines": 321,
+      "overriden_lines": 0
+    }
+  }
+}
