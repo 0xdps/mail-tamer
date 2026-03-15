@@ -1,0 +1,74 @@
+frontend/src/components/Select.jsx
+  e83ccfaa848f3143 1-55
+frontend/src/pages/Decisions.jsx
+  38e4076d5efeb542 4,31,33,50,52,55-61,63,66-73
+Dockerfile
+  e67932f4f6a4d648 16
+frontend/index.html
+  38e4076d5efeb542 6-11
+frontend/src/index.css
+  e67932f4f6a4d648 620
+  38e4076d5efeb542 3-311,313-339
+frontend/src/Layout.jsx
+  38e4076d5efeb542 25
+frontend/src/pages/Login.jsx
+  38e4076d5efeb542 27
+backend/requirements.txt
+  e67932f4f6a4d648 9
+frontend/vite.config.js
+  38e4076d5efeb542 3,6
+frontend/src/pages/Rules.jsx
+  38e4076d5efeb542 4,58,60-65,164-165,167,169-176,178,180-186
+  e67932f4f6a4d648 194
+scripts/setup.sh
+  e67932f4f6a4d648 29
+frontend/src/pages/ControlPanel.jsx
+  38e4076d5efeb542 4,73,85,93-95,108,112,114-115,117-119,123-124,128,131-132,171,177,199,202-203,225,232,235-241,250-251,253-254,261
+  e67932f4f6a4d648 36,113,130,133-136,138-140,142-144,148-160,162-164,259-260,263-264,267-268,279
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "a2670108d51322a665d5b0a98ec29a9a1672000e",
+  "prompts": {
+    "38e4076d5efeb542": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "3b770abc-03d5-4df4-af5e-4f620bb00a15",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 462,
+      "total_deletions": 107,
+      "accepted_lines": 432,
+      "overriden_lines": 1
+    },
+    "e67932f4f6a4d648": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "3de2d4f8-3498-492f-a0f1-283fa9037e32",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 61,
+      "total_deletions": 36,
+      "accepted_lines": 45,
+      "overriden_lines": 0
+    },
+    "e83ccfaa848f3143": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "23e5c47d-fa41-4795-a572-9639eb653df8",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 55,
+      "total_deletions": 0,
+      "accepted_lines": 55,
+      "overriden_lines": 0
+    }
+  }
+}
