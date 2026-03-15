@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ArrowUpCircle, Filter } from 'lucide-react'
 import { api } from '../api'
+import Select from '../components/Select'
 
 const SOURCE_BADGE = { ai: 'badge-blue', rule: 'badge-green', domain: 'badge-gray' }
 
@@ -27,9 +28,9 @@ export default function Decisions() {
 
   useEffect(() => { load() }, [page, filters])
 
-  const setFilter = (k) => (e) => {
+  const setFilter = (k) => (v) => {
     setPage(1)
-    setFilters(f => ({ ...f, [k]: e.target.value }))
+    setFilters(f => ({ ...f, [k]: v }))
   }
 
   const promote = async (id) => {
@@ -46,22 +47,30 @@ export default function Decisions() {
         <p className="page-subtitle">Every email classification decision — AI and rule-based</p>
       </div>
 
-      <div className="filters">
+      <div className="filter-bar">
         <Filter size={14} color="var(--text-2)" />
-        <select value={filters.source} onChange={setFilter('source')}>
-          <option value="">All sources</option>
-          <option value="ai">AI</option>
-          <option value="rule">Rule</option>
-          <option value="domain">Domain</option>
-        </select>
-        <select value={filters.dry_run} onChange={setFilter('dry_run')}>
-          <option value="">All modes</option>
-          <option value="false">Live</option>
-          <option value="true">Dry run</option>
-        </select>
-        <span style={{ marginLeft: 'auto', color: 'var(--text-2)', fontSize: 13 }}>
-          {data.total} total
-        </span>
+        <Select
+          value={filters.source}
+          onChange={setFilter('source')}
+          style={{ width: 148 }}
+          options={[
+            { value: '',       label: 'All sources' },
+            { value: 'ai',     label: 'AI' },
+            { value: 'rule',   label: 'Rule' },
+            { value: 'domain', label: 'Domain' },
+          ]}
+        />
+        <Select
+          value={filters.dry_run}
+          onChange={setFilter('dry_run')}
+          style={{ width: 140 }}
+          options={[
+            { value: '',      label: 'All modes' },
+            { value: 'false', label: 'Live' },
+            { value: 'true',  label: 'Dry run' },
+          ]}
+        />
+        <span className="ml-auto text-[13px] text-[var(--text-2)]">{data.total} total</span>
       </div>
 
       <div className="card" style={{ padding: 0 }}>

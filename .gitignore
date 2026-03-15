@@ -7,8 +7,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
-venv/
-env/
 .venv/
 build/
 develop-eggs/
@@ -30,8 +28,9 @@ MANIFEST
 
 # SQLite databases
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
-backend/triage.db
 
 # Frontend
 frontend/node_modules/

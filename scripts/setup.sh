@@ -15,17 +15,17 @@ pyenv shell 3.12
 # Backend setup
 echo "=> Setting up backend virtual environment..."
 cd backend
-if [ ! -d "venv" ]; then
+if [ ! -d ".venv" ]; then
     echo "Creating virtual environment..."
-    python -m venv venv
-    echo "Created venv."
+    python -m venv .venv
+    echo "Created .venv."
 fi
-source venv/bin/activate
-pip install -r ../requirements.txt
+source .venv/bin/activate
+pip install -r requirements.txt
 
 # Frontend setup
 echo "=> Setting up frontend dependencies..."
 cd ../frontend
-npm install
+npm install --legacy-peer-deps
 
 echo "=> Setup complete. Run 'just dev' to start the servers."

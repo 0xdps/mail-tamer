@@ -47,7 +47,14 @@ async def _check_claude() -> dict:
         import anthropic
         client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
         loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: client.models.list())
+        if hasattr(client, "models"):
+            await loop.run_in_executor(None, lambda: list(client.models.list()))
+        else:
+            # Fallback for older SDK: send a minimal count_tokens request
+            await loop.run_in_executor(None, lambda: client.messages.count_tokens(
+                model="claude-3-haiku-20240307",
+                messages=[{"role": "user", "content": "hi"}],
+            ))
         return {"ok": True, "error": None}
     except Exception as e:
         return {"ok": False, "error": str(e)}
@@ -56,91 +63,14 @@ async def _check_claude() -> dict:
 @router.get("")
 async def health_check():
     ai_model = await get_setting("ai_model", "gemini-2.0-flash")
-    if "gemini" in ai_model:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_gemini())
-    else:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_claude())
+    google_result, gemini_result, claude_result = await asyncio.gather(
+        _check_google(),
+        _check_gemini(),
+        _check_claude(),
+    )
     return {
         "google": google_result,
-        "ai": {**ai_result, "model": ai_model},
-    }
-
-
-
-async def _check_gemini() -> dict:
-    try:
-        if not os.environ.get("GEMINI_API_KEY"):
-            return {"ok": False, "error": "GEMINI_API_KEY not configured"}
-        import google.generativeai as genai
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: list(genai.list_models()))
-        return {"ok": True, "error": None}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-async def _check_claude() -> dict:
-    try:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            return {"ok": False, "error": "ANTHROPIC_API_KEY not configured"}
-        import anthropic
-        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: client.models.list())
-        return {"ok": True, "error": None}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-@router.get("")
-async def health_check():
-    ai_model = await get_setting("ai_model", "gemini-2.0-flash")
-    if "gemini" in ai_model:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_gemini())
-    else:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_claude())
-    return {
-        "google": google_result,
-        "ai": {**ai_result, "model": ai_model},
-    }
-
-
-
-async def _check_gemini() -> dict:
-    try:
-        if not os.environ.get("GEMINI_API_KEY"):
-            return {"ok": False, "error": "GEMINI_API_KEY not configured"}
-        import google.generativeai as genai
-        genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: list(genai.list_models()))
-        return {"ok": True, "error": None}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-async def _check_claude() -> dict:
-    try:
-        if not os.environ.get("ANTHROPIC_API_KEY"):
-            return {"ok": False, "error": "ANTHROPIC_API_KEY not configured"}
-        import anthropic
-        client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, lambda: client.models.list())
-        return {"ok": True, "error": None}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-
-
-@router.get("")
-async def health_check():
-    ai_model = await get_setting("ai_model", "gemini-2.0-flash")
-    if "gemini" in ai_model:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_gemini())
-    else:
-        google_result, ai_result = await asyncio.gather(_check_google(), _check_claude())
-    return {
-        "google": google_result,
-        "ai": {**ai_result, "model": ai_model},
+        "gemini": gemini_result,
+        "claude": claude_result,
+        "active_model": ai_model,
     }

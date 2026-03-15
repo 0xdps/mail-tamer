@@ -31,7 +31,7 @@ Requires `python 3.12+` and `node 22+`.
    ```bash
    just setup
    ```
-   *Note: This creates a Python `venv` in `/backend` and runs `npm install` in `/frontend`.*
+   *Note: This creates a Python `.venv` in `/backend` and runs `npm install` in `/frontend`.*
 
 3. **Run Dev Servers**:
    ```bash

@@ -23,7 +23,9 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <div className="login-icon">✉️</div>
+        <div className="login-icon">
+          <img src="/logo-192.png" alt="Mail Tamer" style={{ width: 52, height: 52, objectFit: 'contain' }} />
+        </div>
         <h1 className="login-title">Mail Tamer</h1>
         <p className="login-sub">Enter your admin token to continue</p>
         {error && <div className="login-error">{error}</div>}

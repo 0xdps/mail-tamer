@@ -6,7 +6,7 @@ trap 'kill 0' SIGINT
 
 echo "=> Starting backend server (uvicorn)..."
 cd backend
-source venv/bin/activate
+source .venv/bin/activate
 uvicorn main:app --reload --port 8000 &
 BACKEND_PID=$!
 

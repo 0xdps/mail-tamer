@@ -13,7 +13,7 @@ WORKDIR /app
 # System deps (req. for some python packages like aiosqlite, cryptography, etc)
 RUN apk add --no-cache gcc musl-dev libffi-dev
 
-COPY requirements.txt .
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy Backend Code

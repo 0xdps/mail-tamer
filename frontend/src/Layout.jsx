@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, Inbox, History, Settings, Mail, LogOut, MailOpen } from 'lucide-react'
+import { BookOpen, Inbox, History, Settings, LogOut, MailOpen } from 'lucide-react'
 import { api } from './api'
 
 const navItems = [
@@ -22,7 +22,7 @@ export default function Layout() {
     <div className="layout">
       <nav className="sidebar">
         <div className="sidebar-logo">
-          <Mail size={20} />
+          <img src="/logo-192.png" alt="Mail Tamer" style={{ width: 28, height: 28, objectFit: 'contain' }} />
           Mail Tamer
         </div>
 
@@ -38,7 +38,11 @@ export default function Layout() {
         ))}
 
         <div className="sidebar-footer">
-          <button className="nav-item btn" style={{ width: '100%', background: 'none', border: 'none', fontSize: 14 }} onClick={logout}>
+          <button
+            className="btn btn-ghost"
+            style={{ width: '100%', justifyContent: 'flex-start', gap: 9, paddingLeft: 10, paddingRight: 10 }}
+            onClick={logout}
+          >
             <LogOut size={15} />
             Sign out
           </button>

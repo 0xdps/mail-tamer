@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { CheckCircle, Clock, Trash2, Edit2, X, Plus, Filter } from 'lucide-react'
 import { api } from '../api'
+import Select from '../components/Select'
 
 const STATUS_BADGE = {
   active:   'badge-green',
@@ -54,11 +55,15 @@ function RuleModal({ rule, onClose, onSave }) {
           </div>
           <div className="form-group">
             <label className="form-label">Action</label>
-            <select className="input" value={form.action} onChange={set('action')}>
-              <option value="label">Label only</option>
-              <option value="archive">Label + Archive</option>
-              <option value="trash">Trash</option>
-            </select>
+            <Select
+              value={form.action}
+              onChange={(v) => setForm(f => ({ ...f, action: v }))}
+              options={[
+                { value: 'label',   label: 'Label only' },
+                { value: 'archive', label: 'Label + Archive' },
+                { value: 'trash',   label: 'Trash' },
+              ]}
+            />
           </div>
         </div>
         <div className="form-group" style={{ marginBottom: 12 }}>
@@ -156,27 +161,37 @@ export default function Rules() {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <div className="filters" style={{ margin: 0 }}>
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div className="filter-bar" style={{ margin: 0 }}>
           <Filter size={14} color="var(--text-2)" />
-          <select value={filter.status} onChange={e => setFilter(f => ({ ...f, status: e.target.value }))}>
-            <option value="">All statuses</option>
-            <option value="active">Active</option>
-            <option value="pending">Pending</option>
-            <option value="disabled">Disabled</option>
-          </select>
-          <select value={filter.source} onChange={e => setFilter(f => ({ ...f, source: e.target.value }))}>
-            <option value="">All sources</option>
-            <option value="manual">Manual</option>
-            <option value="ai">AI promoted</option>
-          </select>
+          <Select
+            value={filter.status}
+            onChange={(v) => setFilter(f => ({ ...f, status: v }))}
+            style={{ width: 154 }}
+            options={[
+              { value: '',         label: 'All statuses' },
+              { value: 'active',   label: 'Active' },
+              { value: 'pending',  label: 'Pending' },
+              { value: 'disabled', label: 'Disabled' },
+            ]}
+          />
+          <Select
+            value={filter.source}
+            onChange={(v) => setFilter(f => ({ ...f, source: v }))}
+            style={{ width: 148 }}
+            options={[
+              { value: '',       label: 'All sources' },
+              { value: 'manual', label: 'Manual' },
+              { value: 'ai',     label: 'AI promoted' },
+            ]}
+          />
         </div>
         <button className="btn btn-primary" onClick={() => setModal('new')}>
           <Plus size={14} /> New Rule
         </button>
       </div>
 
-      <div className="card" style={{ padding: 0 }}>
+      <div className="card" style={{ padding: 0, marginTop: 16 }}>
         <div className="table-wrapper">
           <table>
             <thead>

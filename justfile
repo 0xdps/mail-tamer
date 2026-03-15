@@ -4,7 +4,7 @@ set allow-duplicate-recipes := true
 default:
     @just --list
 
-# Install all dependencies (backend venv + frontend npm)
+# Install all dependencies (backend ..venv + frontend npm)
 setup:
     ./scripts/setup.sh
 
@@ -30,13 +30,13 @@ logs:
 
 # Run database migrations / seed script
 seed:
-    @cd backend && source venv/bin/activate && python seed.py
+    @cd backend && source .venv/bin/activate && python seed.py
 
 # Clean up dev artifacts and python cache
 clean:
-    rm -rf backend/venv
+    rm -rf backend/.venv
     rm -rf frontend/node_modules
     rm -rf frontend/dist
     find backend -name "*.pyc" -delete
     find backend -name "__pycache__" -delete
-    echo "Cleaned up venv, node_modules, dist, and pycache."
+    echo "Cleaned up .venv, node_modules, dist, and pycache."
