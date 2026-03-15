@@ -18,7 +18,7 @@ class RuleMatch:
 async def match_email(sender: str, subject: str, domain: str) -> Optional[RuleMatch]:
     """Try domain_mappings first (fastest), then full rule scan."""
 
-    async with await get_db() as db:
+    async with get_db() as db:
         # 1. Domain mapping (exact, fastest)
         async with db.execute(
             "SELECT label, action FROM domain_mappings WHERE domain = ?",
@@ -75,7 +75,7 @@ def _rule_matches(conditions: dict, sender: str, subject: str, domain: str) -> b
 
 
 async def _increment_match_count(rule_id: int):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             "UPDATE rules SET match_count = match_count + 1, updated_at = datetime('now') WHERE id = ?",
             (rule_id,)

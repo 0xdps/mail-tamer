@@ -137,7 +137,7 @@ async def maybe_promote_to_rule(result: ClassificationResult, email: dict):
 
     name = f"AI: {email['sender'].split('<')[0].strip() or email['subject'][:40]}"
 
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """INSERT INTO rules (name, description, label, action, source, status, conditions, confidence)
                VALUES (?, ?, ?, ?, 'ai', 'pending', ?, ?)""",

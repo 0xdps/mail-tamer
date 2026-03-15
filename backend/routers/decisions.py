@@ -39,7 +39,7 @@ async def list_decisions(
     query += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
     params += [per_page, offset]
 
-    async with await get_db() as db:
+    async with get_db() as db:
         async with db.execute(query, params) as cur:
             rows = await cur.fetchall()
         async with db.execute("SELECT COUNT(*) FROM decisions") as cur:
@@ -54,7 +54,7 @@ async def promote_to_rule(decision_id: int):
     import json
     from database import get_db
 
-    async with await get_db() as db:
+    async with get_db() as db:
         async with db.execute("SELECT * FROM decisions WHERE id = ?", (decision_id,)) as cur:
             row = await cur.fetchone()
         if not row:

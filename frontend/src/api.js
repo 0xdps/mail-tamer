@@ -53,4 +53,14 @@ export const api = {
   updateSettings: (data) => req('/scheduler/settings', { method: 'PATCH', body: data }),
   triggerScan: () => req('/scheduler/scan', { method: 'POST' }),
   triggerBatch: (max_emails = 20000) => req(`/scheduler/batch?max_emails=${max_emails}`, { method: 'POST' }),
+
+  // health
+  getHealth: () => req('/health'),
+
+  // emails
+  getEmails: (pageToken = null, maxResults = 25) => {
+    const q = new URLSearchParams({ max_results: maxResults })
+    if (pageToken) q.set('page_token', pageToken)
+    return req(`/emails?${q}`)
+  },
 }

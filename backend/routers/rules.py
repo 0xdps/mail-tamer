@@ -30,7 +30,7 @@ async def list_rules(
     status: Optional[str] = Query(None),
     source: Optional[str] = Query(None),
 ):
-    async with await get_db() as db:
+    async with get_db() as db:
         query = "SELECT * FROM rules WHERE 1=1"
         params = []
         if status:
@@ -47,7 +47,7 @@ async def list_rules(
 
 @router.post("", status_code=201)
 async def create_rule(body: RuleCreate):
-    async with await get_db() as db:
+    async with get_db() as db:
         cur = await db.execute(
             """INSERT INTO rules (name, description, label, action, source, status, conditions)
                VALUES (?, ?, ?, ?, 'manual', 'active', ?)""",
@@ -70,7 +70,7 @@ async def update_rule(rule_id: int, body: RuleUpdate):
     sets = ", ".join(f"{k} = ?" for k in updates)
     values = list(updates.values()) + [rule_id]
 
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             f"UPDATE rules SET {sets}, updated_at = datetime('now') WHERE id = ?", values
         )
@@ -81,7 +81,7 @@ async def update_rule(rule_id: int, body: RuleUpdate):
 @router.post("/{rule_id}/approve")
 async def approve_rule(rule_id: int):
     """Approve a pending AI-promoted rule — makes it active."""
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             "UPDATE rules SET status = 'active', updated_at = datetime('now') WHERE id = ? AND status = 'pending'",
             (rule_id,)
@@ -92,7 +92,7 @@ async def approve_rule(rule_id: int):
 
 @router.delete("/{rule_id}", status_code=204)
 async def delete_rule(rule_id: int):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute("DELETE FROM rules WHERE id = ?", (rule_id,))
         await db.commit()
 

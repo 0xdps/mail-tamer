@@ -1,5 +1,6 @@
 import aiosqlite
 import os
+from contextlib import asynccontextmanager
 
 DB_PATH = os.getenv("DB_PATH", "triage.db")
 
@@ -76,11 +77,12 @@ INSERT OR IGNORE INTO settings (key, value) VALUES
     ('scheduler_enabled', 'true');
 """
 
-async def get_db() -> aiosqlite.Connection:
-    db = await aiosqlite.connect(DB_PATH)
-    db.row_factory = aiosqlite.Row
-    await db.execute("PRAGMA foreign_keys = ON")
-    return db
+@asynccontextmanager
+async def get_db():
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        await db.execute("PRAGMA foreign_keys = ON")
+        yield db
 
 async def init_db():
     async with aiosqlite.connect(DB_PATH) as db:
@@ -88,13 +90,13 @@ async def init_db():
         await db.commit()
 
 async def get_setting(key: str, default: str = "") -> str:
-    async with await get_db() as db:
+    async with get_db() as db:
         async with db.execute("SELECT value FROM settings WHERE key = ?", (key,)) as cur:
             row = await cur.fetchone()
             return row["value"] if row else default
 
 async def set_setting(key: str, value: str):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, datetime('now')) "
             "ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')",

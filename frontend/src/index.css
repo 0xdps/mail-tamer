@@ -289,6 +289,7 @@ tr:hover td { background: rgba(255,255,255,0.02); }
 .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 6px; }
 .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
 .dot-yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+.dot-red    { background: var(--red);    box-shadow: 0 0 6px var(--red); }
 .dot-gray { background: var(--text-2); }
 
 /* ─── Scrollbar ──────────────────────────────────────────── */

@@ -29,6 +29,8 @@ async def start_scheduler():
             id=_job_id,
             replace_existing=True,
             coalesce=True,
+            max_instances=3,
+            misfire_grace_time=60,
         )
         print(f"[scheduler] started — polling every {interval} min")
     else:
@@ -54,6 +56,7 @@ def reschedule(interval_minutes: int):
         _scheduler.reschedule_job(
             _job_id,
             trigger=IntervalTrigger(minutes=interval_minutes),
+            misfire_grace_time=60,
         )
 
 

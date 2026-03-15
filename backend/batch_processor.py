@@ -29,7 +29,7 @@ async def run_batch(max_emails: int = 20000) -> dict:
     checkpoint = int(await get_setting(CHECKPOINT_KEY, "0"))
 
     # Create a batch run entry
-    async with await get_db() as db:
+    async with get_db() as db:
         cur = await db.execute(
             "INSERT INTO runs (trigger, emails_fetched) VALUES ('batch', ?)", (total,)
         )
@@ -65,7 +65,7 @@ async def run_batch(max_emails: int = 20000) -> dict:
     await set_setting(CHECKPOINT_KEY, "0")
 
     # Update batch run entry
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """UPDATE runs SET status = 'done', rules_matched = ?, ai_calls = ?,
                labels_applied = ?, finished_at = datetime('now') WHERE id = ?""",

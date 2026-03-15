@@ -19,7 +19,6 @@ def _build_credentials() -> Credentials:
         client_id=os.environ["GOOGLE_CLIENT_ID"],
         client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
         token_uri="https://oauth2.googleapis.com/token",
-        scopes=SCOPES,
     )
 
 def get_gmail_service():

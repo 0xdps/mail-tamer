@@ -5,6 +5,7 @@ import Rules from './pages/Rules'
 import Decisions from './pages/Decisions'
 import RunHistory from './pages/RunHistory'
 import ControlPanel from './pages/ControlPanel'
+import Emails from './pages/Emails'
 import './index.css'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="rules" element={<Rules />} />
           <Route path="decisions" element={<Decisions />} />
           <Route path="runs" element={<RunHistory />} />
+          <Route path="emails" element={<Emails />} />
           <Route path="control" element={<ControlPanel />} />
         </Route>
       </Routes>

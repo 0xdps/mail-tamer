@@ -10,6 +10,8 @@ load_dotenv()
 from database import init_db
 from scheduler import start_scheduler
 from routers import auth, rules, decisions, runs, scheduler as scheduler_router
+from routers import health as health_router
+from routers import emails as emails_router
 
 
 @asynccontextmanager
@@ -26,6 +28,8 @@ app.include_router(rules.router)
 app.include_router(decisions.router)
 app.include_router(runs.router)
 app.include_router(scheduler_router.router)
+app.include_router(health_router.router)
+app.include_router(emails_router.router)
 
 # Serve React SPA (built to frontend/dist)
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend", "dist")

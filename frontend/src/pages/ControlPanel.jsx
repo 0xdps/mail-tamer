@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Play, Pause, Zap, Database, RefreshCw } from 'lucide-react'
+import { Play, Pause, Zap, Database, RefreshCw, Wifi, WifiOff } from 'lucide-react'
 import { api } from '../api'
 
 export default function ControlPanel() {
@@ -9,6 +9,8 @@ export default function ControlPanel() {
   const [scanning, setScanning] = useState(false)
   const [batching, setBatching] = useState(false)
   const [msg, setMsg] = useState('')
+  const [health, setHealth] = useState(null)
+  const [healthLoading, setHealthLoading] = useState(false)
 
   const load = async () => {
     try {
@@ -19,7 +21,18 @@ export default function ControlPanel() {
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  const checkHealth = async () => {
+    setHealthLoading(true)
+    try {
+      const h = await api.getHealth()
+      setHealth(h)
+    } catch (e) {
+      setHealth({ error: e.message })
+    }
+    setHealthLoading(false)
+  }
+
+  useEffect(() => { load(); checkHealth() }, [])
 
   const flash = (m) => { setMsg(m); setTimeout(() => setMsg(''), 3000) }
 
@@ -31,9 +44,14 @@ export default function ControlPanel() {
   }
 
   const updateSetting = async (key, value) => {
-    const patch = { [key]: value }
-    await api.updateSettings(patch)
+    const prev = settings[key]
     setSettings(s => ({ ...s, [key]: value }))
+    try {
+      await api.updateSettings({ [key]: value })
+    } catch (e) {
+      setSettings(s => ({ ...s, [key]: prev }))
+      flash('Failed to save: ' + e.message)
+    }
   }
 
   const triggerScan = async () => {
@@ -50,6 +68,9 @@ export default function ControlPanel() {
     catch (e) { flash(e.message) }
     setBatching(false)
   }
+
+  const connItemStyle = { display: 'flex', flexDirection: 'column', flex: 1, minWidth: 180 }
+  const errStyle = { fontSize: 12, color: 'var(--red)', marginTop: 4, fontFamily: 'monospace', wordBreak: 'break-word' }
 
   if (loading) return <div style={{ color: 'var(--text-2)', padding: 40 }}>Loading…</div>
 
@@ -69,6 +90,68 @@ export default function ControlPanel() {
       )}
 
       <div className="control-grid">
+
+        {/* Connection Status */}
+        <div className="card" style={{ gridColumn: '1 / -1' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: health ? 14 : 0 }}>
+            <div style={{ fontWeight: 700, fontSize: 15 }}>Connection Status</div>
+            <button
+              className="btn btn-ghost"
+              style={{ padding: '5px 12px', fontSize: 12 }}
+              onClick={checkHealth}
+              disabled={healthLoading}
+            >
+              <RefreshCw size={12} className={healthLoading ? 'spin' : ''} />
+              {healthLoading ? 'Checking…' : 'Recheck'}
+            </button>
+          </div>
+
+          {healthLoading && !health && (
+            <div style={{ color: 'var(--text-2)', fontSize: 13 }}>Checking connections…</div>
+          )}
+
+          {health && !health.error && (
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+              {/* Google */}
+              <div style={connItemStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className={`dot ${health.google?.ok ? 'dot-green' : 'dot-red'}`}></span>
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>Google APIs</span>
+                  {health.google?.ok
+                    ? <span className="badge badge-green" style={{ fontSize: 10 }}>Connected</span>
+                    : <span className="badge badge-red" style={{ fontSize: 10 }}>Disconnected</span>
+                  }
+                </div>
+                {health.google?.ok
+                  ? <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>{health.google.email_address}</div>
+                  : <div style={errStyle}>{health.google?.error}</div>
+                }
+              </div>
+
+              <div style={{ width: 1, background: 'var(--border)', flexShrink: 0, alignSelf: 'stretch' }} />
+
+              {/* AI Model */}
+              <div style={connItemStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className={`dot ${health.ai?.ok ? 'dot-green' : 'dot-red'}`}></span>
+                  <span style={{ fontWeight: 600, fontSize: 13 }}>AI Model</span>
+                  {health.ai?.ok
+                    ? <span className="badge badge-green" style={{ fontSize: 10 }}>Connected</span>
+                    : <span className="badge badge-red" style={{ fontSize: 10 }}>Disconnected</span>
+                  }
+                </div>
+                {health.ai?.ok
+                  ? <div style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 4 }}>Using <span style={{ color: 'var(--text)', fontWeight: 500 }}>{health.ai.model}</span></div>
+                  : <div style={errStyle}>{health.ai?.error}</div>
+                }
+              </div>
+            </div>
+          )}
+
+          {health?.error && (
+            <div style={{ color: 'var(--red)', fontSize: 13 }}>Failed to fetch health status: {health.error}</div>
+          )}
+        </div>
 
         {/* Scheduler */}
         <div className="card">

@@ -31,7 +31,7 @@ async def run_triage(
     client = GmailClient()
 
     # ---------------------------------------------------------------- create run
-    async with await get_db() as db:
+    async with get_db() as db:
         if run_id is None:
             cur = await db.execute(
                 "INSERT INTO runs (trigger, dry_run) VALUES (?, ?)",
@@ -125,7 +125,7 @@ async def _log_decision(
     message_id: str, email: dict, label: str, action: str,
     source: str, rule_id, confidence, model, dry_run: bool
 ):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """INSERT OR IGNORE INTO decisions
                (message_id, sender, subject, snippet, label, action, source,
@@ -142,13 +142,13 @@ async def _log_decision(
 
 async def _update_run(run_id: int, **kwargs):
     sets = ", ".join(f"{k} = ?" for k in kwargs)
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(f"UPDATE runs SET {sets} WHERE id = ?", (*kwargs.values(), run_id))
         await db.commit()
 
 
 async def _finish_run(run_id: int, stats: dict):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             """UPDATE runs SET
                status = 'done', rules_matched = ?, ai_calls = ?,
@@ -160,7 +160,7 @@ async def _finish_run(run_id: int, stats: dict):
 
 
 async def _fail_run(run_id: int, error: str):
-    async with await get_db() as db:
+    async with get_db() as db:
         await db.execute(
             "UPDATE runs SET status = 'failed', error = ?, finished_at = datetime('now') WHERE id = ?",
             (error[:500], run_id)

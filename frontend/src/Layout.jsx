@@ -1,11 +1,12 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BookOpen, Inbox, History, Settings, Mail, LogOut } from 'lucide-react'
+import { BookOpen, Inbox, History, Settings, Mail, LogOut, MailOpen } from 'lucide-react'
 import { api } from './api'
 
 const navItems = [
   { to: '/rules',    label: 'Rules',       icon: BookOpen  },
   { to: '/decisions',label: 'Decisions',   icon: Inbox     },
   { to: '/runs',     label: 'Run History', icon: History   },
+  { to: '/emails',   label: 'Emails',      icon: MailOpen  },
   { to: '/control',  label: 'Control Panel', icon: Settings },
 ]
 
