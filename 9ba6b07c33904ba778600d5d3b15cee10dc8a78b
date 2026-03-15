@@ -1,0 +1,31 @@
+frontend/src/pages/Dashboard.jsx
+  e67932f4f6a4d648 129-133,136-138,140-142,144-151,154
+backend/gmail_client.py
+  e67932f4f6a4d648 39-43,47,53-59,61
+backend/ai_classifier.py
+  e67932f4f6a4d648 44,46-47
+frontend/src/pages/Rules.jsx
+  e67932f4f6a4d648 11-12,19,32,74,78-80,145,233
+backend/rule_engine.py
+  e67932f4f6a4d648 15,19,31,33-35,46-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "9ba6b07c33904ba778600d5d3b15cee10dc8a78b",
+  "prompts": {
+    "e67932f4f6a4d648": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "3de2d4f8-3498-492f-a0f1-283fa9037e32",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 69,
+      "total_deletions": 35,
+      "accepted_lines": 56,
+      "overriden_lines": 0
+    }
+  }
+}
