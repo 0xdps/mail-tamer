@@ -1,0 +1,69 @@
+frontend/src/api.js
+  e67932f4f6a4d648 66-69
+backend/routers/dashboard.py
+  d3e543f79e1d8133 1-97,100-123
+frontend/src/pages/Dashboard.jsx
+  d3e543f79e1d8133 1-118,125-204,206-215,217,219-229
+backend/database.py
+  e67932f4f6a4d648 70-77
+backend/gmail_client.py
+  e83ccfaa848f3143 109,112,114-118,126-129,131
+backend/triage_engine.py
+  e67932f4f6a4d648 104
+frontend/src/App.jsx
+  e67932f4f6a4d648 1,4,18
+frontend/src/Layout.jsx
+  e67932f4f6a4d648 2,6,30,34
+backend/main.py
+  e67932f4f6a4d648 2-3,36
+backend/seed.py
+  e67932f4f6a4d648 1-2,4-7,16-56,58-68
+backend/ai_classifier.py
+  e67932f4f6a4d648 29,32,35,64,70,74,80-82,84-88,101-106,124-125,128,165-166,175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "4a1fc8cb59e7e0f72b3c91877845a69199174892",
+  "prompts": {
+    "d3e543f79e1d8133": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "47274b88-99a8-455e-bc8c-11a47da7f906",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 348,
+      "total_deletions": 0,
+      "accepted_lines": 341,
+      "overriden_lines": 6
+    },
+    "e67932f4f6a4d648": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "3de2d4f8-3498-492f-a0f1-283fa9037e32",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 129,
+      "total_deletions": 26,
+      "accepted_lines": 108,
+      "overriden_lines": 10
+    },
+    "e83ccfaa848f3143": {
+      "agent_id": {
+        "tool": "github-copilot",
+        "id": "23e5c47d-fa41-4795-a572-9639eb653df8",
+        "model": "copilot/claude-sonnet-4.6"
+      },
+      "human_author": "Devendra Pratap Singh <dps.manit@gmail.com>",
+      "messages": [],
+      "total_additions": 12,
+      "total_deletions": 9,
+      "accepted_lines": 12,
+      "overriden_lines": 0
+    }
+  }
+}
